@@ -7,12 +7,13 @@ const Person = require('./models/person')
 const cors = require('cors')
 
 const errorHandler = (error, request, response, next) => {
-  console.log('------------- ERROR -------------')
   console.error(error.message)
 
   if (error.name === 'CastError' && error.kind == 'ObjectId') {
     return response.status(400).send({ error: 'malformatted id' })
-  } 
+  } else if (error.name === 'ValidationError') {
+    return response.status(400).json({ msg: error.message })
+  }
 
   next(error)
 }
@@ -40,21 +41,13 @@ app.post('/api/persons', (req, res, next) => {
       error: 'number missing from body'
     })
   }
-  Person.exists({ name: req.body.name })
-  .then(bool => {
-    if (bool) {
-      return res.status(400).json({
-        error: 'name must be unique'
-      })
-    } else {
-      const person = new Person({
-        name: req.body.name,
-        number: req.body.number,
-      })
-      person.save().then(data => res.json(data.toJSON()))
-    }
+  const person = new Person({
+    name: req.body.name,
+    number: req.body.number,
   })
-  .catch(e => next(e))
+  person.save()
+    .then(data => res.json(data.toJSON()))
+    .catch(e => next(e))
 })
 
 app.get('/api/persons', (req, res, next) => {
@@ -80,7 +73,8 @@ app.delete('/api/persons/:id', (req, res, next) => {
 })
 
 app.put('/api/persons/:id', (req, res, next) => {
-  Person.findByIdAndUpdate(req.params.id, req.body).then(person => {
+  const updater = {name: req.body.name, number: req.body.number}
+  Person.findByIdAndUpdate(req.params.id, updater).then(person => {
     if (person) res.json(req.body)
     else res.status(404).end()
   })

@@ -74,7 +74,7 @@ app.delete('/api/persons/:id', (req, res, next) => {
 
 app.put('/api/persons/:id', (req, res, next) => {
   const updater = {name: req.body.name, number: req.body.number}
-  Person.findByIdAndUpdate(req.params.id, updater).then(person => {
+  Person.findByIdAndUpdate(req.params.id, updater, {runValidators: true, context: 'query'}).then(person => {
     if (person) res.json(req.body)
     else res.status(404).end()
   })

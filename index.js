@@ -6,10 +6,10 @@ const bodyParser = require('body-parser')
 const Person = require('./models/person')
 const cors = require('cors')
 
-const errorHandler = (error, request, response, next) => {
+const errorHandler = (error, _request, response, next) => {
   console.error(error.message)
 
-  if (error.name === 'CastError' && error.kind == 'ObjectId') {
+  if (error.name === 'CastError' && error.kind === 'ObjectId') {
     return response.status(400).send({ error: 'malformatted id' })
   } else if (error.name === 'ValidationError') {
     return response.status(400).json({ msg: error.message })
@@ -24,7 +24,7 @@ app.use(bodyParser.json())
 morgan.token('log-data', (req) => JSON.stringify(req.body))
 app.use(morgan(':method :url :status - :response-time ms :log-data'))
 
-app.get('/info', (req, res) => {
+app.get('/info', (_req, res) => {
   Person.find({}).then(ps => {
     res.send(`Phonebook has info for ${ps.length} people<br/>${new Date()}`)
   })
@@ -54,7 +54,7 @@ app.get('/api/persons', (req, res, next) => {
   Person.find({}).then(ps => {
     res.json(ps.map(person => person.toJSON()))
   })
-  .catch(e => next(e))
+    .catch(e => next(e))
 })
 
 app.get('/api/persons/:id', (req, res, next) => {
@@ -62,23 +62,23 @@ app.get('/api/persons/:id', (req, res, next) => {
     if (person) res.json(person.toJSON())
     else res.status(404).end()
   })
-  .catch(e => next(e))
+    .catch(e => next(e))
 })
 
 app.delete('/api/persons/:id', (req, res, next) => {
-  Person.findByIdAndRemove(req.params.id).then(person => {
+  Person.findByIdAndRemove(req.params.id).then(() => {
     res.status(204).end()
   })
-  .catch(e => next(e))
+    .catch(e => next(e))
 })
 
 app.put('/api/persons/:id', (req, res, next) => {
-  const updater = {name: req.body.name, number: req.body.number}
-  Person.findByIdAndUpdate(req.params.id, updater, {runValidators: true, context: 'query'}).then(person => {
+  const updater = { name: req.body.name, number: req.body.number }
+  Person.findByIdAndUpdate(req.params.id, updater, { runValidators: true, context: 'query' }).then(person => {
     if (person) res.json(req.body)
     else res.status(404).end()
   })
-  .catch(e => next(e))
+    .catch(e => next(e))
 })
 
 const PORT = process.env.PORT || 3001

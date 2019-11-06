@@ -5,7 +5,7 @@ mongoose.set('useCreateIndex', true)
 
 console.log('connecting to', url)
 mongoose.connect(url, { useNewUrlParser: true, useUnifiedTopology: true })
-  .then(res => console.log('connected to MongoDB'))
+  .then(() => console.log('connected to MongoDB'))
   .catch(e => console.error('error connecting to MongoDB:', e.message))
 
 const personSchema = new mongoose.Schema({
